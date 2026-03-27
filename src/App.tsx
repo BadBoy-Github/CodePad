@@ -7,6 +7,7 @@ const App = () => {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [code, setCode] = useState<string>("//Start writing your code here...");
   const [consoleOutput, setConsoleOutput] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
 
   const handleRun = (e?: React.MouseEvent) => {
     if (e) {
@@ -42,10 +43,35 @@ const App = () => {
       }
 
       setConsoleOutput(output || "Code executed successfully (no output)");
+      setIsError(false);
     } catch (error) {
-      setConsoleOutput(
-        `Error: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      let errorMessage = "Unknown error";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Try to extract line number from stack trace
+        if (error.stack) {
+          const stackLines = error.stack.split("\n");
+          for (const line of stackLines) {
+            // Look for patterns like "at <function> (file:line:col)" or "file:line:col"
+            const match = line.match(
+              /(?:at\s+(?:.*\s+)?)?(?:eval\s+)?[<(]?(?:.*\.js:?)(\d+):?(\d+)?/,
+            );
+            if (match) {
+              const lineNum = match[1];
+              // Adjust for the code starting line (line 1 is the default value, actual code starts after)
+              const adjustedLine = parseInt(lineNum) - 1;
+              errorMessage += ` (at line ~${adjustedLine})`;
+              break;
+            }
+          }
+        }
+      } else {
+        errorMessage = String(error);
+      }
+
+      setConsoleOutput(`Error: ${errorMessage}`);
+      setIsError(true);
     }
     setIsTerminalOpen(true);
   };
@@ -58,6 +84,7 @@ const App = () => {
         isTerminalOpen={isTerminalOpen}
         setIsTerminalOpen={setIsTerminalOpen}
         consoleOutput={consoleOutput}
+        isError={isError}
       />
     </div>
   );

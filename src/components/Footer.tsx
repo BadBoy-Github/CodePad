@@ -4,19 +4,25 @@ interface FooterProps {
   isTerminalOpen: boolean;
   setIsTerminalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   consoleOutput: string | null;
+  isError: boolean;
 }
 
 const Footer = ({
   isTerminalOpen,
   setIsTerminalOpen,
   consoleOutput,
+  isError,
 }: FooterProps) => {
   return (
     <div className="w-full bg-teal-200 flex flex-col overflow-hidden rounded-t-xl">
       {/* Terminal Window - appears when up arrow is clicked, grows upwards */}
       {isTerminalOpen && (
         <div className="h-40 bg-gray-900 text-white p-4 overflow-auto border-b border-gray-700">
-          <h3 className="font-semibold mb-2 text-green-400">Terminal Output</h3>
+          <h3
+            className={`font-semibold mb-2 ${isError ? "text-red-400" : "text-green-400"}`}
+          >
+            {isError ? "Error Output" : "Terminal Output"}
+          </h3>
           <pre className="text-sm font-mono">
             {`${consoleOutput || "No output"}`}
           </pre>
