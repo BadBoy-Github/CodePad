@@ -24,6 +24,8 @@ const App = () => {
   const [language, setLanguage] = useState<string>("javascript");
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [javaProcessId, setJavaProcessId] = useState<number | null>(null);
+  const [javaRunning, setJavaRunning] = useState(false);
 
   // Initialize Pyodide on component mount
   useEffect(() => {
@@ -158,26 +160,38 @@ const App = () => {
     // Handle Java - send to backend server for compilation and execution
     const handleJavaRun = async () => {
       try {
-        setConsoleOutput("Compiling and running Java code...");
+        setConsoleOutput("Compiling and running Java code...\n");
         setIsTerminalOpen(true);
         setIsError(false);
+        setJavaRunning(true);
 
-        const response = await fetch("http://localhost:3001/execute/java", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "http://localhost:3001/execute/java/start",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ code }),
           },
-          body: JSON.stringify({ code }),
-        });
+        );
 
         const result = await response.json();
 
         if (result.success) {
-          setConsoleOutput(result.output);
+          setJavaProcessId(result.processId);
+          setConsoleOutput(result.output || "Waiting for input...\n");
           setIsError(false);
+
+          // Check if already finished
+          if (result.isFinished) {
+            setJavaRunning(false);
+            setConsoleOutput(result.output + "\n\nProgram finished.");
+          }
         } else {
           setConsoleOutput(result.error || "Execution failed");
           setIsError(true);
+          setJavaRunning(false);
         }
       } catch (error) {
         let errorMessage = "Failed to connect to backend server";
@@ -188,6 +202,7 @@ const App = () => {
           `Error: ${errorMessage}\n\nMake sure the backend server is running on http://localhost:3001`,
         );
         setIsError(true);
+        setJavaRunning(false);
       }
       setIsTerminalOpen(true);
     };
@@ -266,6 +281,44 @@ const App = () => {
     setIsTerminalOpen(true);
   };
 
+  // Handle terminal input for interactive Java programs
+  const handleTerminalInput = async (input: string) => {
+    if (!javaProcessId || !javaRunning) return;
+
+    try {
+      const response = await fetch("http://localhost:3001/execute/java/input", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ processId: javaProcessId, input }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setConsoleOutput(
+          result.output + (result.isFinished ? "\n\nProgram finished." : ""),
+        );
+
+        if (result.isFinished) {
+          setJavaRunning(false);
+          setJavaProcessId(null);
+        }
+      } else {
+        setConsoleOutput(
+          (prev) => prev + "\nError: " + (result.error || "Input failed"),
+        );
+        setIsError(true);
+        setJavaRunning(false);
+        setJavaProcessId(null);
+      }
+    } catch (error) {
+      setConsoleOutput((prev) => prev + "\nError: Failed to send input");
+      setIsError(true);
+    }
+  };
+
   return (
     <div className=" px-10 pt-10 bg-teal-100 w-full h-screen flex flex-col">
       <Header
@@ -280,6 +333,9 @@ const App = () => {
         consoleOutput={consoleOutput}
         isError={isError}
         language={language}
+        onTerminalInput={handleTerminalInput}
+        showTerminalInput={javaRunning}
+        javaProcessId={javaProcessId}
       />
       <div className="h-10">
         <Footer
