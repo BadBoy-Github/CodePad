@@ -6,6 +6,7 @@ interface MainBodyProps {
   isTerminalOpen: boolean;
   consoleOutput: string | null;
   isError: boolean;
+  language: string;
 }
 
 const MainBody = ({
@@ -14,10 +15,13 @@ const MainBody = ({
   isTerminalOpen,
   consoleOutput,
   isError,
+  language,
 }: MainBodyProps) => {
-  const handleEditorDidMount = (_editor: unknown, monaco: any) => {
+  const handleEditorDidMount = (_editor: unknown, monaco: unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monacoEditor = monaco as any;
     // Define custom theme
-    monaco.editor.defineTheme("myCustomTheme", {
+    monacoEditor.editor.defineTheme("myCustomTheme", {
       base: "vs",
       inherit: true,
       rules: [
@@ -32,7 +36,7 @@ const MainBody = ({
     });
 
     // Apply theme
-    monaco.editor.setTheme("myCustomTheme");
+    monacoEditor.editor.setTheme("myCustomTheme");
   };
 
   return (
@@ -54,7 +58,7 @@ const MainBody = ({
       <div className="flex-1 overflow-hidden">
         <Editor
           height="100%"
-          defaultLanguage="javascript"
+          language={language}
           defaultValue="//Start writing your code here..."
           value={code}
           onChange={(value) => setCode(value || "")}

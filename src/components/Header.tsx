@@ -2,9 +2,11 @@ import { FaPlay } from "react-icons/fa";
 
 interface HeaderProps {
   onRun: () => void;
+  language: string;
+  onLanguageChange: (language: string) => void;
 }
 
-const Header = ({ onRun }: HeaderProps) => {
+const Header = ({ onRun, language, onLanguageChange }: HeaderProps) => {
   return (
     <div className=" w-full h-20 flex items-center justify-between">
       <div className="bg-teal-200 h-full flex items-center justify-between p-4 rounded-xl">
@@ -16,7 +18,22 @@ const Header = ({ onRun }: HeaderProps) => {
           <p className="text-teal-800 text-sm">code like pro</p>
         </div>
       </div>
-      <div className="bg-teal-200 w-40 h-full rounded-xl flex items-center justify-center px-4">
+      <div className="bg-teal-200 h-full rounded-xl flex items-center justify-center px-4 gap-4">
+        {/* Language Dropdown */}
+        <label className="flex items-center gap-2">
+          <span className="text-teal-700 text-sm font-medium">Lang:</span>
+          <select
+            value={language}
+            onChange={(e) => onLanguageChange(e.target.value)}
+            className="px-3 py-2 bg-teal-50 text-teal-700 rounded-lg border border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium cursor-pointer"
+            aria-label="Select programming language"
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+          </select>
+        </label>
+        {/* Run Button */}
         <button
           type="button"
           onClick={onRun}

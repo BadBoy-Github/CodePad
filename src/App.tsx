@@ -8,6 +8,23 @@ const App = () => {
   const [code, setCode] = useState<string>("//Start writing your code here...");
   const [consoleOutput, setConsoleOutput] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const [language, setLanguage] = useState<string>("javascript");
+
+  // Default code templates for each language
+  const defaultCode: Record<string, string> = {
+    javascript:
+      "//Start writing your code here...\nconsole.log('Hello, World!');",
+    java: '//Start writing your code here...\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
+    python: "#Start writing your code here...\nprint('Hello, World!')",
+  };
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    setCode(defaultCode[newLanguage] || defaultCode.javascript);
+    setConsoleOutput(null);
+    setIsError(false);
+    setIsTerminalOpen(false);
+  };
 
   const handleRun = (e?: React.MouseEvent) => {
     if (e) {
@@ -78,13 +95,18 @@ const App = () => {
 
   return (
     <div className=" px-10 pt-10 bg-teal-100 w-full h-screen flex flex-col">
-      <Header onRun={handleRun} />
+      <Header
+        onRun={handleRun}
+        language={language}
+        onLanguageChange={handleLanguageChange}
+      />
       <MainBody
         code={code}
         setCode={setCode}
         isTerminalOpen={isTerminalOpen}
         consoleOutput={consoleOutput}
         isError={isError}
+        language={language}
       />
       <div className="h-10">
         <Footer
