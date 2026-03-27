@@ -18,8 +18,7 @@ const Footer = ({
         <div className="h-40 bg-gray-900 text-white p-4 overflow-auto border-b border-gray-700">
           <h3 className="font-semibold mb-2 text-green-400">Terminal Output</h3>
           <pre className="text-sm font-mono">
-            {`> Running code...
-${consoleOutput || "No output"}`}
+            {`${consoleOutput || "No output"}`}
           </pre>
         </div>
       )}
