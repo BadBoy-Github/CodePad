@@ -26,6 +26,7 @@ const App = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [javaProcessId, setJavaProcessId] = useState<number | null>(null);
   const [javaRunning, setJavaRunning] = useState(false);
+  const [javaRequiresInput, setJavaRequiresInput] = useState(false);
 
   // Initialize Pyodide on component mount
   useEffect(() => {
@@ -183,10 +184,13 @@ const App = () => {
           // Show Java's output directly
           setConsoleOutput(result.output);
           setIsError(false);
+          // Check if the program is waiting for input
+          setJavaRequiresInput(result.requiresInput === true);
 
           // Check if already finished
           if (result.isFinished) {
             setJavaRunning(false);
+            setJavaRequiresInput(false);
           }
         } else {
           setConsoleOutput(result.error || "Execution failed");
@@ -302,8 +306,12 @@ const App = () => {
           result.output + (result.isFinished ? "\n\nProgram finished." : ""),
         );
 
+        // Update requiresInput based on backend response
+        setJavaRequiresInput(result.requiresInput === true);
+
         if (result.isFinished) {
           setJavaRunning(false);
+          setJavaRequiresInput(false);
           setJavaProcessId(null);
         }
       } else {
@@ -335,7 +343,7 @@ const App = () => {
         isError={isError}
         language={language}
         onTerminalInput={handleTerminalInput}
-        showTerminalInput={javaRunning}
+        showTerminalInput={javaRequiresInput}
         javaProcessId={javaProcessId}
       />
       <div className="h-10">
